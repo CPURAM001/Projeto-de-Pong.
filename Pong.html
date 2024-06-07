@@ -1,0 +1,153 @@
+// Pong do David! Santos Futebol Clube.
+const canvas = document.createElement('canvas');
+document.body.appendChild(canvas);
+canvas.width = 800;
+canvas.height = 400;
+const context = canvas.getContext('2d');
+
+
+const paddleWidth = 10;
+const paddleHeight = 100;
+const player1 = {
+    x: 10,
+    y: canvas.height / 2 - paddleHeight / 2,
+    width: paddleWidth,
+    height: paddleHeight,
+    dy: 5,
+    score: 0
+};
+const player2 = {
+    x: canvas.width - paddleWidth - 10,
+    y: canvas.height / 2 - paddleHeight / 2,
+    width: paddleWidth,
+    height: paddleHeight,
+    dy: 5,
+    score: 0
+};
+
+
+const ball = {
+    x: canvas.width / 2,
+    y: canvas.height / 2,
+    radius: 15, // Aumentar o tamanho da bola
+    speed: 6,
+    dx: 5,
+    dy: 5
+};
+
+
+function drawPlayer(x, y, width, height) {
+    context.fillStyle = "#000"; // Alterando para preto
+    context.fillRect(x, y, width, height);
+}
+
+function drawBall(x, y, radius) {
+    context.fillStyle = "#000"; // Alterando para preto
+    context.beginPath();
+    context.arc(x, y, radius, 0, Math.PI * 2);
+    context.closePath();
+    context.fill();
+}
+
+
+function updatePlayer(player) {
+    if (player.upPressed) {
+        player.y -= player.dy;
+    }
+    if (player.downPressed) {
+        player.y += player.dy;
+    }
+    // Limitar movimento dentro do canvas
+    player.y = Math.max(Math.min(player.y, canvas.height - player.height), 0);
+}
+
+
+function updateBall() {
+    ball.x += ball.dx;
+    ball.y += ball.dy;
+
+    // Colisão com os jogadores
+    if (ball.x - ball.radius < player1.x + player1.width &&
+        ball.x + ball.radius > player1.x &&
+        ball.y - ball.radius < player1.y + player1.height &&
+        ball.y + ball.radius > player1.y) {
+        ball.dx *= -1;
+    }
+    if (ball.x - ball.radius < player2.x + player2.width &&
+        ball.x + ball.radius > player2.x &&
+        ball.y - ball.radius < player2.y + player2.height &&
+        ball.y + ball.radius > player2.y) {
+        ball.dx *= -1;
+    }
+
+    
+    if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
+        ball.dy *= -1;
+    }
+
+    
+    if (ball.x - ball.radius < 0) {
+        player2.score++;
+        resetBall();
+    }
+    if (ball.x + ball.radius > canvas.width) {
+        player1.score++;
+        resetBall();
+    }
+}
+
+
+function resetBall() {
+    ball.x = canvas.width / 2;
+    ball.y = canvas.height / 2;
+    ball.dx = -ball.dx;
+}
+
+
+function drawScore() {
+    context.fillStyle = "blue"; // Alterando a cor do placar para azul
+    context.font = "24px Verdana"; // Reduzindo o tamanho da fonte
+    context.fillText(player1.score.toString(), 100, canvas.height - 30); // Posição na parte de baixo
+    context.fillText(player2.score.toString(), canvas.width - 100, canvas.height - 30); 
+}
+
+
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'w') {
+        player1.upPressed = true;
+    } else if (event.key === 's') {
+        player1.downPressed = true;
+    } else if (event.key === 'ArrowUp') {
+        player2.upPressed = true;
+    } else if (event.key === 'ArrowDown') {
+        player2.downPressed = true;
+    }
+});
+document.addEventListener('keyup', function(event) {
+    if (event.key === 'w') {
+        player1.upPressed = false;
+    } else if (event.key === 's') {
+        player1.downPressed = false;
+    } else if (event.key === 'ArrowUp') {
+        player2.upPressed = false;
+    } else if (event.key === 'ArrowDown') {
+        player2.downPressed = false;
+    }
+});
+
+
+function gameLoop() {
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    updatePlayer(player1);
+    updatePlayer(player2);
+    updateBall();
+    drawPlayer(player1.x, player1.y, player1.width, player1.height);
+    drawPlayer(player2.x, player2.y, player2.width, player2.height);
+    drawBall(ball.x, ball.y, ball.radius);
+    drawScore();
+    requestAnimationFrame(gameLoop);
+}
+
+
+gameLoop();
+
